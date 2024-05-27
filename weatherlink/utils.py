@@ -8,7 +8,7 @@ from typing import List, Optional
 from bitstring import BitStream
 
 # Supercell Code
-from .exceptions import BadCRC, NotAcknowledged, UnknownResponseCode
+from exceptions import BadCRC, NotAcknowledged, UnknownResponseCode
 
 socket.setdefaulttimeout(2.0)
 logger = logging.getLogger(__name__)
@@ -405,5 +405,5 @@ if __name__ == "__main__":
     test_crc16()
     print("CRC16 test passed.")
     test_connect("127.0.0.1", 22222)
-    print("Connect test passed.")
+    print()
     logger.info("All tests passed.")

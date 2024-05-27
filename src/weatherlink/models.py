@@ -9,9 +9,9 @@ from bitstring import BitStream
 from dateutil.tz import tzlocal
 
 # Supercell Code
-from exceptions import BadCRC
-from utils import crc16, CRC16_TABLE, make_time
-from bar_trend import BarTrend
+from .exceptions import BadCRC
+from .utils import crc16, CRC16_TABLE, make_time
+from .bar_trend import BarTrend
 
 FORECAST_RULES = [
     "Mostly clear and cooler.",
