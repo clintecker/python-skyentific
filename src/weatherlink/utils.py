@@ -356,7 +356,7 @@ def make_datetime(
 def test_crc16():
     # Known input data for which we know the expected CRC result
     # This data should be a list of bytes. Example: b"hello world"
-    input_data = b"hello world"
+    input_data = b"LOO\x14\x00\xb1\x02It\x1e\x03\x0f\x8a\x02\x02\x03\x8c\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x1b\xff\xff\xff\xff\xff\xff\xff\x00\x00V\xff\x7f\x00\x00\xff\xff\x00\x00\x02\x00\x02\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x006\x03\x03\xc0\x1b\x02\xe3\x07\n\r\xee\x00"
 
     # Convert input data to a list of integers representing bytes, as expected by the crc16 function
     input_data_as_bytes = BitStream(input_data)
@@ -364,7 +364,7 @@ def test_crc16():
     # Expected CRC result after processing the input data
     # This value should be changed to what is actually expected for the given input
     # For demonstration, let's assume we expect 0x1D0F, but you should calculate this based on your CRC16 variant
-    expected_crc_result = 0x593E
+    expected_crc_result = 0x0
 
     # Call the crc16 function with the test data
     calculated_crc = crc16(input_data_as_bytes)
@@ -375,14 +375,12 @@ def test_crc16():
     ), f"Expected CRC: {expected_crc_result}, but got: {calculated_crc}"
 
 
-def test_connect():
-    host = "127.0.0.1"
-    port = 22222
+def test_connect(host, port):
     sock = connect(host, port)
 
     LOOP_COMMAND = b"LOOP %d\n"
     LOOP_RECORD_SIZE_BYTES = 99
-    LOOP_RECORD_SIZE_BITS = LOOP_RECORD_SIZE_BYTES * 8
+    # LOOP_RECORD_SIZE_BITS = LOOP_RECORD_SIZE_BYTES * 8
 
     loop_data = b""
     try:
@@ -400,10 +398,12 @@ def test_connect():
         raise NotAcknowledged()
     finally:
         sock.close()
-    print(loop_data)
+    return loop_data
 
 
 if __name__ == "__main__":
     test_crc16()
-    test_connect()
+    print("CRC16 test passed.")
+    test_connect("127.0.0.1", 22222)
+    print("Connect test passed.")
     logger.info("All tests passed.")
