@@ -8,7 +8,13 @@ import socket
 import time
 
 # Weatherlink Code
-from .exceptions import BadCRC, NotAcknowledged, UnknownResponseCode
+from .exceptions import (
+    BadCRC,
+    NotAcknowledged,
+    UnknownResponseCode,
+    StopTrying,
+    WeatherLinkError,
+)
 from .models import StationObservation
 from .utils import receive_data, request
 
@@ -54,29 +60,37 @@ def get_current(sock: socket.socket) -> bytes:
         logger.info("Loop data received successfully.")
     except socket.error as socket_error:
         logger.exception(
-            f"Could not issue loop command due to socket error: ", str(socket_error)
+            f"Could not issue loop command due to socket error: {str(socket_error)}"
         )
         raise NotAcknowledged()
-    finally:
-        sock.close()
+    logger.debug("Returning loop data.")
     return loop_data
 
 
-def get_current_condition(sock: socket.socket) -> StationObservation:
+def get_current_condition(
+    sock: socket.socket, initialization_function: callable, delay_function=callable
+) -> StationObservation:
     """Obtains the current conditions."""
-    try:
-        current_bytes = get_current(sock)
-    except (BadCRC, NotAcknowledged, UnknownResponseCode):
-        # Wait a little and try again.
-        time.sleep(0.1)
+    keep_trying = True
+    while keep_trying:
         try:
             current_bytes = get_current(sock)
+            keep_trying = False
+            sock.close()
         except (BadCRC, NotAcknowledged, UnknownResponseCode):
-            # Wait twice as long and try again.
-            time.sleep(1.0)
+            # Wait a little and try again.
+            logger.warning(
+                "Bad CRC, Not Acknowledged, or Unknown Response Code. Trying again."
+            )
             try:
-                current_bytes = get_current(sock)
-            except (BadCRC, NotAcknowledged, UnknownResponseCode):
-                # Ok just give up.
-                raise
-    return StationObservation.init_with_bytes(current_bytes)
+                delay_function()
+            except StopTrying:
+                logger.warning(f"StopTrying exception caught. Exiting loop.")
+                sock.close()
+                raise WeatherLinkError("Could not get current conditions.")
+    try:
+        condition = initialization_function(current_bytes)
+    except Exception as e:
+        logger.exception("Initialization function failed.")
+        raise WeatherLinkError("Could not initialize current conditions.")
+    return condition

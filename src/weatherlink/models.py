@@ -1,6 +1,6 @@
 # Standard Library
 import datetime
-import json
+import logging
 import random
 from typing import Dict, List, Optional, Literal
 
@@ -12,6 +12,8 @@ from dateutil.tz import tzlocal
 from .exceptions import BadCRC
 from .utils import crc16, CRC16_TABLE, make_time
 from .bar_trend import BarTrend
+
+logger = logging.getLogger(__name__)
 
 FORECAST_RULES = [
     "Mostly clear and cooler.",
@@ -241,8 +243,8 @@ REVISION_B = "B"
 
 LOOP_HEADER = b"LOOP"
 
-LOOP2_PACKET_TYPE = "LOOP2"
-LOOP_PACKET_TYPE = "LOOP"
+LOOP2_PACKET_TYPE = 1
+LOOP_PACKET_TYPE = 0
 
 LUNATION_LOOKUP = {
     0.05: "New Moon",
@@ -277,36 +279,32 @@ WIND_DIRECTION_LOOKUP = {
     360: "N",
 }
 
-FORECAST_ICONS_LOOKUP = {
-    1: "Rain within 12 hrs",
-    2: "Cloudy",
-    4: "Cloud + Sunny",
-    8: "Sunny",
-    16: "Snow within 12hrs",
-}
 
-
-def _lunation_text(lunation: float) -> str:
+def lunation_text(lunation: float) -> str:
     """Converts the lunation value to a string."""
     if lunation < 0 or lunation > 1.0:
         raise ValueError("Lunation must be between 0.0 - 1.0")
 
     if lunation < 0.5:
         direction = "Waxing"
+    elif lunation == 0.5 or lunation == 1.0:
+        direction = ""
     else:
         direction = "Waning"
 
     lunation_text = "Unknown Lunation"
 
     for lunation_value, lunation_text in LUNATION_LOOKUP.items():
-        if lunation >= lunation_value:
+        if lunation > lunation_value:
             continue
         break
 
+    if direction == "":
+        return "{text}".format(text=lunation_text)
     return "{text} ({direction})".format(text=lunation_text, direction=direction)
 
 
-def _wind_direction_text(wind_direction: int) -> str:
+def wind_direction_text(wind_direction: int) -> str:
     """Converts the wind direction value to text."""
     if wind_direction < 0 or wind_direction > 360:
         raise ValueError(
@@ -322,14 +320,63 @@ def _wind_direction_text(wind_direction: int) -> str:
     return wind_direction_text
 
 
-def _forecast_icons_text(forecast_icons: int) -> List[str]:
+FORECAST_ICONS_LOOKUP = {
+    0: "Rain within 12 hrs",
+    1: "Cloudy",
+    2: "Mostly Cloudy",
+    3: "Partly Cloudy",
+    4: "Snow",
+}
+
+
+def forecast_icons_text(forecast_icons: int) -> List[str]:
+    """
+    | Value | Bit | Forecast Icon                   |
+    |-------|-----|---------------------------------|
+    |       | 0   | Rain within 12 hours            |
+    |       | 1   | Cloud                           |
+    |       | 2   | Partly Cloudy                   |
+    |       | 3   | Sun                             |
+    |       | 4   | Snow                            |
+
+    For example this controls the icons:
+
+    - `0b0000 0000` (0x00) - Unknown?
+    - `0b0000 0001` (0x01) - Rain within 12 hours
+    - `0b0000 0010` (0x02) - Cloud
+    - `0b0000 0100` (0x04) - Partly Cloudy
+    - `0b0000 1000` (0x08) - Sunny
+    - `0b0001 0000` (0x10) - Snow
+
+    These then combine to create complex forecasts:
+
+    - `0b0000 1000` (0x08) - Sun = Mostly Clear
+    - `0b0000 0110` (0x06) - Partial Sun + Cloud = Partly Cloudy
+    - `0x0000 0010` (0x02) - Cloud = Mostly Cloudy
+    - `0x0000 0011` (0x03) - Rain + Cloud = Mostly Cloudy, Rain within 12 hours
+    - `0x0001 0010` (0x12) - Cloud + Snow = Mostly Cloudy, Snow within 12 hours
+    - `0x0001 0011` (0x13) - Cloud + Rain + Snow = Mostly Cloud, Rain or Snow within 12 hours
+    - `0x0000 0111` (0x07) - Partial Sun + Cloud + Rain = Partly Cloudy, Rain within 12 hours
+    - `0x0001 0110` (0x16) - Partial Sun + Cloud + Snow = Partly Cloudy, Snow within 12 hours
+    - `0x0001 0111` (0x17) - Partial Sun + Cloud + Rain + Snow = Partly Cloudy, Snow or Rain within 12 hours
+    """
     if forecast_icons < 0 or forecast_icons > 31:
         raise ValueError("Forecast icons must be between 0 - 31.")
-    return [
-        forecast_icon_text
-        for bit_position, forecast_icon_text in FORECAST_ICONS_LOOKUP.items()
-        if ((forecast_icons & bit_position) == bit_position)
-    ]
+
+    logger.debug(f"Forecast Icons For: {forecast_icons}, binary: {bin(forecast_icons)}")
+
+    forecast_icons_text = []
+    if forecast_icons == 0:
+        return "Unknown"
+    else:
+        for i in range(5):
+            if forecast_icons & (1 << i):
+                logger.debug(f"Forecast Icon: {i} -> {FORECAST_ICONS_LOOKUP[i]}")
+                forecast_icons_text.append(FORECAST_ICONS_LOOKUP[i])
+            else:
+                logger.debug(f"Forecast Icon: {i} -> Not Set")
+
+    return ", ".join(forecast_icons_text)
 
 
 class StationObservation(object):
@@ -395,10 +442,10 @@ class StationObservation(object):
 
     def wind_direction_text(self) -> str:
         """Produces a string description of the wind direction."""
-        return _wind_direction_text(self.wind_direction)
+        return wind_direction_text(self.wind_direction)
 
     def forecast_icons_text(self) -> List[str]:
-        return _forecast_icons_text(self.forecast_icons)
+        return forecast_icons_text(self.forecast_icons)
 
     def forecast_text(self) -> str:
         """Returns the string version of the forecast rule."""
@@ -434,8 +481,9 @@ class StationObservation(object):
         cls, record_bitstream: BitStream, validate_crc: bool = True
     ) -> None:
         """Validates a record."""
+        if type(record_bitstream) is not BitStream:
+            raise ValueError("Record must be a BitStream.")
         if len(record_bitstream) != LOOP_RECORD_SIZE_BITS:
-            print(record_bitstream)
             raise ValueError(
                 "Records should be %d bits in length. It is %d"
                 % (LOOP_RECORD_SIZE_BITS, len(record_bitstream))
@@ -446,9 +494,12 @@ class StationObservation(object):
     @classmethod
     def validate_packet_type(cls, record_bitstream: BitStream) -> None:
         """Validates the packet type."""
-        packet_type = record_bitstream.read(8).int and "LOOP2" or "LOOP"
-        if packet_type == LOOP2_PACKET_TYPE:
-            raise ValueError("LOOP2 Packet not yet supported.")
+        if type(record_bitstream) is not BitStream:
+            raise ValueError("Record must be a BitStream.")
+        packet_type_value = record_bitstream.read(8).int
+        logger.debug(f"Packet Type Value: {packet_type_value}")
+        if packet_type_value == LOOP2_PACKET_TYPE:
+            raise ValueError("LOOP2 Packet Not Supported")
 
     @classmethod
     def init_with_bytes(
@@ -574,9 +625,3 @@ class StationObservation(object):
             identifier=identifier,
             observation_made_at=observation_made_at,
         )
-
-
-if __name__ == "__main__":
-    test_bytes = b"LOO\x14\x00\xb1\x02It\x1e\x03\x0f\x8a\x02\x02\x03\x8c\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x1b\xff\xff\xff\xff\xff\xff\xff\x00\x00V\xff\x7f\x00\x00\xff\xff\x00\x00\x02\x00\x02\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x006\x03\x03\xc0\x1b\x02\xe3\x07\n\r\xee\x00"
-    observation = StationObservation.init_with_bytes(test_bytes)
-    print(json.dumps(observation.to_dict()))

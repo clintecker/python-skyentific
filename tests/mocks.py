@@ -16,7 +16,7 @@ class MockSocket:
         position (int): The current position in the received data.
     """
 
-    def __init__(self, data):
+    def __init__(self, data, send_side_effect=None, recv_side_effect=None):
         self.data = data
         self.host = None
         self.port = None
@@ -24,6 +24,8 @@ class MockSocket:
         self.sentData = b""
         self.position = 0
         logger.debug("MockSocket initialized with data of length %d", len(data))
+        self.send_side_effect = send_side_effect
+        self.recv_side_effect = recv_side_effect
 
     def sendall(self, data: bytes) -> None:
         """
@@ -32,6 +34,8 @@ class MockSocket:
         Args:
             data (bytes): The data to be sent.
         """
+        if self.send_side_effect:
+            raise self.send_side_effect
         logger.info(f"Sending data: {data}")
         self.sentData += data
 
@@ -48,6 +52,8 @@ class MockSocket:
         Raises:
             Exception: If there is no more data to read.
         """
+        if self.recv_side_effect:
+            raise self.recv_side_effect
         logger.debug(
             f"Receiving data of size {buffer_size} from position {self.position}. Data is {len(self.data)}"
         )
@@ -69,10 +75,12 @@ class MockSocket:
         Raises:
             Exception: If the socket is already closed.
         """
+        logger.debug("Attmpting to close socket.")
         if self.open:
             self.open = False
         else:
             raise Exception("Socket already closed")
+        logger.debug("Socket closed.")
 
     def connect(self, address: tuple[str, int]) -> None:
         """

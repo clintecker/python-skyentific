@@ -18,8 +18,8 @@ dev_dependencies = [
 setup(
     name="weatherlink",
     version="1.0.0",
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
+    packages=find_packages(where="src") + ["tests"],
+    package_dir={"": "src", "tests": "tests"},
     install_requires=requirements,
     extras_require={
         "dev": dev_dependencies,

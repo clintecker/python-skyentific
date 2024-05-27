@@ -299,9 +299,9 @@ def crc16(data: BitStream) -> int:
     return crc
 
 
-def connect(host: str, port: int) -> socket.socket:
+def connect(host: str, port: int, socket_generator: callable) -> socket.socket:
     """Connects to a TCP/IP host."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock = socket_generator(socket.AF_INET, socket.SOCK_STREAM)
     logger.info("Connecting to %s:%s", host, port)
     sock.connect((host, port))
     return sock
@@ -331,79 +331,11 @@ def receive_data(sock: socket.socket, buffer_size: Optional[int] = None) -> byte
 
 def make_time(time_stamp: int) -> datetime.time:
     """Converts an integer time to a time object."""
-    hour = int(time_stamp / 100)
-    minute = time_stamp - (hour * 100)
-    return datetime.time(hour=hour, minute=minute)
-
-
-def make_datetime(
-    date_stamp: BitStream, time_stamp: int
-) -> Optional[datetime.datetime]:
-    """Converts a date stamp and time stamp into a datetime object."""
-    year = date_stamp.read(7).uint
-    month = date_stamp.read(4).uint
-    day = date_stamp.read(5).uint
-    timestamp = make_time(time_stamp)
-    return datetime.datetime(
-        year=2000 + year,
-        month=month,
-        day=day,
-        hour=timestamp.hour,
-        minute=timestamp.minute,
-    )
-
-
-def test_crc16():
-    # Known input data for which we know the expected CRC result
-    # This data should be a list of bytes. Example: b"hello world"
-    input_data = b"LOO\x14\x00\xb1\x02It\x1e\x03\x0f\x8a\x02\x02\x03\x8c\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x1b\xff\xff\xff\xff\xff\xff\xff\x00\x00V\xff\x7f\x00\x00\xff\xff\x00\x00\x02\x00\x02\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x006\x03\x03\xc0\x1b\x02\xe3\x07\n\r\xee\x00"
-
-    # Convert input data to a list of integers representing bytes, as expected by the crc16 function
-    input_data_as_bytes = BitStream(input_data)
-
-    # Expected CRC result after processing the input data
-    # This value should be changed to what is actually expected for the given input
-    # For demonstration, let's assume we expect 0x1D0F, but you should calculate this based on your CRC16 variant
-    expected_crc_result = 0x0
-
-    # Call the crc16 function with the test data
-    calculated_crc = crc16(input_data_as_bytes)
-
-    # Assert that the calculated CRC matches the expected result
-    assert (
-        calculated_crc == expected_crc_result
-    ), f"Expected CRC: {expected_crc_result}, but got: {calculated_crc}"
-
-
-def test_connect(host, port):
-    sock = connect(host, port)
-
-    LOOP_COMMAND = b"LOOP %d\n"
-    LOOP_RECORD_SIZE_BYTES = 99
-    # LOOP_RECORD_SIZE_BITS = LOOP_RECORD_SIZE_BYTES * 8
-
-    loop_data = b""
-    try:
-        try:
-            request(sock, LOOP_COMMAND % 1)
-        except (BadCRC, NotAcknowledged, UnknownResponseCode):
-            logger.exception("Could not issue loop command.")
-            raise
-
-        while len(loop_data) != LOOP_RECORD_SIZE_BYTES:
-            data = receive_data(sock)
-            loop_data += data
-    except socket.timeout:
-        logger.exception("Could not issue loop command")
-        raise NotAcknowledged()
-    finally:
-        sock.close()
-    return loop_data
-
-
-if __name__ == "__main__":
-    test_crc16()
-    print("CRC16 test passed.")
-    test_connect("127.0.0.1", 22222)
-    print("Connect test passed.")
-    logger.info("All tests passed.")
+    if time_stamp < 0:
+        raise ValueError("Time stamp must be positive.")
+    if type(time_stamp) is not int:
+        raise TypeError("Time stamp must be an integer.")
+    hour = (time_stamp // 3600) % 24
+    minute = (time_stamp // 60) % 60
+    second = time_stamp % 60
+    return datetime.time(hour=hour, minute=minute, second=second)
