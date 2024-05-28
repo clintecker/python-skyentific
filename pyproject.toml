@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "skyentific"
+version = "0.1.0"
+description = "A library for interfacing with Davis Weatherlink IP loggers"
+authors = ["Clint Ecker <clint@clintecker.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+python-dateutil = "^2.9.0.post0"
+bitstring = "^4.2.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.1"
+pytest-cov = "^5.0.0"
+flake8 = "^7.0.0"
+black = "^24.4.2"
+mypy = "^1.10.0"
+tox = "^4.15.0"
+pre-commit = "^3.7.1"
+twine = "^5.1.0"
+
+[tool.poetry.scripts]
+skyentific = "scripts.skyentific:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

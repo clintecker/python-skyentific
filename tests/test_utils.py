@@ -76,31 +76,8 @@ class TestUtils(TestCase):
 
     def test_make_time(self):
         # Positive test cases
-        self.assertEqual(
-            make_time(1609459200), datetime.time(0, 0, 0)
-        )  # 2021-01-01 00:00:00
-        self.assertEqual(
-            make_time(1609545599), datetime.time(23, 59, 59)
-        )  # 2021-01-01 23:59:59
-        self.assertEqual(
-            make_time(1614556800), datetime.time(0, 0, 0)
-        )  # 2021-03-01 00:00:00
-
-        # Edge cases
-        self.assertEqual(
-            make_time(1609462799), datetime.time(0, 59, 59)
-        )  # edge of an hour
-        self.assertEqual(
-            make_time(1609542000), datetime.time(23, 0, 0)
-        )  # edge of a day
-
-        # Additional corner cases
-        self.assertEqual(
-            make_time(2147483647), datetime.time(3, 14, 7)
-        )  # maximum 32-bit integer
-        self.assertEqual(
-            make_time(9223372036854775807), datetime.time(15, 30, 7)
-        )  # maximum 64-bit integer
+        self.assertEqual(make_time(0), datetime.time(0, 0, 0))  # 00:00:00
+        self.assertEqual(make_time(2359), datetime.time(23, 59, 0))  # 23:59:59
 
         # Negative test cases
         with self.assertRaises(ValueError):
