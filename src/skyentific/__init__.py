@@ -1,5 +1,5 @@
 """
-Tools for retrieving the current conditions from a Davis Weatherlink IP Logger
+Tools for retrieving the current conditions from a Davis Skyentific IP Logger
 """
 
 # Standard Library
@@ -7,13 +7,13 @@ import logging
 import socket
 import time
 
-# Weatherlink Code
+# Skyentific Code
 from .exceptions import (
     BadCRC,
     NotAcknowledged,
     UnknownResponseCode,
     StopTrying,
-    WeatherLinkError,
+    SkyentificError,
 )
 from .models import StationObservation
 from .utils import receive_data, request
@@ -79,18 +79,21 @@ def get_current_condition(
             sock.close()
         except (BadCRC, NotAcknowledged, UnknownResponseCode):
             # Wait a little and try again.
-            logger.warning(
-                "Bad CRC, Not Acknowledged, or Unknown Response Code. Trying again."
-            )
-            try:
-                delay_function()
-            except StopTrying:
-                logger.warning(f"StopTrying exception caught. Exiting loop.")
-                sock.close()
-                raise WeatherLinkError("Could not get current conditions.")
+            logger.warning("Bad CRC, Not Acknowledged, or Unknown Response Code")
+            if delay_function is not None:
+                logger.info("Trying again with: %s", delay_function)
+                try:
+                    delay_function()
+                except StopTrying:
+                    logger.warning(f"StopTrying exception caught. Exiting loop.")
+                    sock.close()
+                    raise SkyentificError("Could not get current conditions.")
+            else:
+                logger.debug("No delay function provided.")
+                raise SkyentificError("Could not get current conditions.")
     try:
         condition = initialization_function(current_bytes)
     except Exception as e:
         logger.exception("Initialization function failed.")
-        raise WeatherLinkError("Could not initialize current conditions.")
+        raise SkyentificError("Could not initialize current conditions.")
     return condition

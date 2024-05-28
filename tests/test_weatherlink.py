@@ -5,16 +5,16 @@ import time
 from unittest.mock import Mock
 from unittest import TestCase
 
-from weatherlink import get_current, get_current_condition, LOOP_RECORD_SIZE_BYTES
-from weatherlink.utils import ACKNOWLEDGED_RESPONSE_CODE
-from weatherlink.exceptions import StopTrying, NotAcknowledged, WeatherLinkError
+from skyentific import get_current, get_current_condition, LOOP_RECORD_SIZE_BYTES
+from skyentific.utils import ACKNOWLEDGED_RESPONSE_CODE
+from skyentific.exceptions import StopTrying, NotAcknowledged, SkyentificError
 
 from .mocks import MockSocket
 
 logger = logging.getLogger(__name__)
 
 
-class TestWeatherLink(TestCase):
+class TestSkyentific(TestCase):
     code_bytes = ACKNOWLEDGED_RESPONSE_CODE.to_bytes(1, "big")
     loop_packet = b"LOO\x14\x00\xb1\x02It\x1e\x03\x0f\x8a\x02\x02\x03\x8c\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x1b\xff\xff\xff\xff\xff\xff\xff\x00\x00V\xff\x7f\x00\x00\xff\xff\x00\x00\x02\x00\x02\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x006\x03\x03\xc0\x1b\x02\xe3\x07\n\r\xee\x00"
     mock_socket = None
@@ -68,7 +68,7 @@ class TestWeatherLink(TestCase):
             time.sleep(delays[retry_count])
             retry_count += 1
 
-        with self.assertRaises(WeatherLinkError):
+        with self.assertRaises(SkyentificError):
             get_current_condition(
                 self.mock_socket, mock_initialization_function, delay_function
             )
@@ -91,7 +91,7 @@ class TestWeatherLink(TestCase):
             time.sleep(delays[retry_count])
             retry_count += 1
 
-        with self.assertRaises(WeatherLinkError):
+        with self.assertRaises(SkyentificError):
             get_current_condition(
                 receive_error_mock_socket, mock_initialization_function, delay_function
             )

@@ -10,29 +10,29 @@
    - [x] Improve code organization, modularity, and readability.
    - [ ] Add type hints to function signatures for better static type checking.
 
-3. [ ] Error handling and logging:
-   - [ ] Implement robust error handling throughout the codebase.
-   - [ ] Use appropriate exception classes for specific error scenarios.
-   - [ ] Ensure that exceptions are caught and handled gracefully.
-   - [ ] Implement logging to capture important events, errors, and debug information.
+3. [x] Error handling and logging:
+   - [x] Implement robust error handling throughout the codebase.
+   - [x] Use appropriate exception classes for specific error scenarios.
+   - [x] Ensure that exceptions are caught and handled gracefully.
+   - [x] Implement logging to capture important events, errors, and debug information.
 
-4. [ ] Testing and documentation:
-   - [ ] Write unit tests for critical components of the project.
-   - [ ] Aim for good test coverage to ensure code reliability.
-   - [ ] Update the project's documentation, including README.md and API documentation.
-   - [ ] Provide clear instructions on how to set up, configure, and use the project.
+4. [x] Testing and documentation:
+   - [x] Write unit tests for critical components of the project.
+   - [x] Aim for good test coverage to ensure code reliability.
+   - [x] Update the project's documentation, including README.md and API documentation.
+   - [x] Provide clear instructions on how to set up, configure, and use the project.
 
-5. [ ] Implement the command line script:
-   - [ ] Create a new Python script, e.g., `weatherlink_cli.py`, that serves as the entry point for the command line interface.
-   - [ ] Use a popular command line argument parsing library like `argparse` or `click` to define and handle command line arguments.
-   - [ ] Implement the following functionality in the script:
-     - [ ] Accept command line arguments for specifying the weather station's host and port.
-     - [ ] Retrieve the current weather conditions from the specified weather station using the `get_current_condition` function.
-     - [ ] Handle any errors or exceptions that may occur during the retrieval process.
-     - [ ] Format the retrieved weather data as JSON.
-     - [ ] Print the JSON output to the console.
+5. [x] Implement the command line script:
+   - [x] Create a new Python script, e.g., `skyentific.py`, that serves as the entry point for the command line interface.
+   - [x] Use a popular command line argument parsing library like `argparse` or `click` to define and handle command line arguments.
+   - [x] Implement the following functionality in the script:
+     - [x] Accept command line arguments for specifying the weather station's host and port.
+     - [x] Retrieve the current weather conditions from the specified weather station using the `get_current_condition` function.
+     - [x] Handle any errors or exceptions that may occur during the retrieval process.
+     - [x] Format the retrieved weather data as JSON.
+     - [x] Print the JSON output to the console.
 
-6. [ ] Packaging and distribution:
+6. [x] Packaging and distribution:
    - [ ] Update the project's setup configuration file (`setup.py` or `pyproject.toml`) with the latest metadata and dependencies.
    - [ ] Consider using a modern packaging tool like `poetry` or `flit` for simplified dependency management and building.
    - [ ] Build and package the project as a distributable Python package.

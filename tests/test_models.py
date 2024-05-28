@@ -6,9 +6,9 @@ from unittest import TestCase
 
 from bitstring import BitStream
 
-from weatherlink.bar_trend import BarTrend
-from weatherlink.exceptions import BadCRC
-from weatherlink.models import (
+from skyentific.bar_trend import BarTrend
+from skyentific.exceptions import BadCRC
+from skyentific.models import (
     lunation_text,
     wind_direction_text,
     forecast_icons_text,

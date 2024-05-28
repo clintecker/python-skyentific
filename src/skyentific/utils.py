@@ -331,11 +331,14 @@ def receive_data(sock: socket.socket, buffer_size: Optional[int] = None) -> byte
 
 def make_time(time_stamp: int) -> datetime.time:
     """Converts an integer time to a time object."""
+    logger.debug(f"Converting time stamp {time_stamp} to time object.")
     if time_stamp < 0:
         raise ValueError("Time stamp must be positive.")
     if type(time_stamp) is not int:
         raise TypeError("Time stamp must be an integer.")
-    hour = (time_stamp // 3600) % 24
-    minute = (time_stamp // 60) % 60
-    second = time_stamp % 60
+    # The time is stored as hour * 100 + min.
+    hour = time_stamp // 100
+    minute = time_stamp % 100
+    second = 0
+    logger.debug(f"Time stamp {time_stamp} converted to {hour}:{minute}:{second}.")
     return datetime.time(hour=hour, minute=minute, second=second)

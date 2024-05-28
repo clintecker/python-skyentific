@@ -1,4 +1,4 @@
-# WeatherLink IP LOOP Packet Documentation
+# Skyentific IP LOOP Packet Documentation
 
 A LOOP Packet is 99 bytes long. Little Endian.
 

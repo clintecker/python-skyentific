@@ -22,7 +22,7 @@ class StopTrying(Exception):
     pass
 
 
-class WeatherLinkError(Exception):
-    """Base class for WeatherLink exceptions."""
+class SkyentificError(Exception):
+    """Base class for Skyentific exceptions."""
 
     pass

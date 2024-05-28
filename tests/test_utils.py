@@ -4,8 +4,8 @@ import socket
 from unittest.mock import Mock
 from unittest import TestCase
 
-from weatherlink.exceptions import NotAcknowledged, BadCRC, UnknownResponseCode
-from weatherlink.utils import (
+from skyentific.exceptions import NotAcknowledged, BadCRC, UnknownResponseCode
+from skyentific.utils import (
     crc16,
     connect,
     request,

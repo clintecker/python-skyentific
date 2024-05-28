@@ -1,6 +1,6 @@
-# WeatherLink
+# Skyentific
 
-WeatherLink is a Python library for retrieving current weather conditions from a Davis Weatherlink IP Logger.
+Skyentific is a Python library for retrieving current weather conditions from a Davis Skyentific IP Logger.
 
 ## Features
 
@@ -11,18 +11,18 @@ WeatherLink is a Python library for retrieving current weather conditions from a
 
 ## Installation
 
-Install WeatherLink using pip:
+Install Skyentific using pip:
 
 ```shell
-pip install weatherlink
+pip install skyentific
 ```
 
 ## Usage
 
-Here's a basic example of how to use WeatherLink to retrieve the current weather conditions:
+Here's a basic example of how to use Skyentific to retrieve the current weather conditions:
 
 ```python
-from weatherlink import get_current_condition
+from skyentific import get_current_condition
 
 host = '192.168.1.100'
 port = 22222
@@ -36,11 +36,28 @@ except Exception as e:
     print(f"Error: {e}")
 ```
 
-For more detailed usage instructions and examples, please see the documentation.
+## Command Line Usage
+
+After installing the `skyentific` package, you can use the `skyentific` command line script to retrieve current weather conditions from a Skyentific IP Logger.
+
+```shell
+skyentific <host> <port>
+```
+
+- `host`: The hostname or IP address of the Skyentific IP Logger.
+- `port`: The port number to connect to.
+
+The script will output the current weather conditions in JSON format.
+
+Example:
+
+```shell
+skyentific 192.168.1.100 22222
+```
 
 ## Documentation
 
-Full documentation is available at <https://weatherlink.readthedocs.io/>.
+Full documentation is available at <https://skyentific.readthedocs.io/>.
 
 ## Contributing
 
@@ -52,7 +69,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-Thanks to the Davis Instruments team for providing the Weatherlink IP Logger and documentation.
+Thanks to the Davis Instruments team for providing the Skyentific IP Logger and documentation.
 
 ## Support
 

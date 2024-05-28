@@ -16,13 +16,18 @@ dev_dependencies = [
 ]
 
 setup(
-    name="weatherlink",
+    name="skyentific",
     version="1.0.0",
-    packages=find_packages(where="src") + ["tests"],
-    package_dir={"": "src", "tests": "tests"},
+    packages=find_packages(where="src") + ["tests", "scripts"],
+    package_dir={"": "src", "tests": "tests", "scripts": "scripts"},
     install_requires=requirements,
     extras_require={
         "dev": dev_dependencies,
+    },
+    entry_points={
+        "console_scripts": [
+            "skyentific=scripts.skyentific:main",
+        ],
     },
     # Add other metadata and configuration options as needed
 )

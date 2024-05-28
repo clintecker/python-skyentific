@@ -1,5 +1,5 @@
 [run]
-source = src/weatherlink
+source = src/skyentific
 branch = True
 omit =
     tests/*
